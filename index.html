@@ -222,6 +222,7 @@
       <a href="#warden">Warden</a>
       <a href="#recorder">Recorder</a>
       <a href="#suite">Suite</a>
+      <a href="#research">Research</a>
       <a href="#underwriter">Underwriter</a>
       <a href="#council">Council</a>
       <a href="#day">The Day</a>
@@ -247,8 +248,8 @@
 <section id="overview">
   <div class="wrap">
     <div class="sec-eyebrow">00 · The stack</div>
-    <h2 class="sec-title">One shell, four instruments, one discipline</h2>
-    <p class="lede">Everything runs inside <b>Warden</b> — a private, self-hosted workspace. The <b>Recorder</b> captures the trading day into replayable tapes; the <b>Sentinel Suite</b> scores each tape into a session report; the <b>Council</b> and Analyst read that report back through different lenses; and the <b>Underwriter</b> screens same-day options in parallel. Data flows one direction — in. Nothing flows out to a broker.</p>
+    <h2 class="sec-title">One shell, five instruments, one discipline</h2>
+    <p class="lede">Everything runs inside <b>Warden</b> — a private, self-hosted workspace. The <b>Recorder</b> captures the trading day into replayable tapes; the <b>Sentinel Suite</b> scores each tape into a session report; the <b>Research Desk</b> mines a whole month of them, under strict discipline, for a framework worth trusting; the <b>Council</b> and Analyst read a report back through different lenses; and the <b>Underwriter</b> screens same-day options in parallel. Data flows one direction — in. Nothing flows out to a broker.</p>
 
     <div class="schematic reveal">
       <div class="src"><span class="chip mono"><span class="tb-dot"></span> IBKR / TWS · read-only feed</span></div>
@@ -261,6 +262,7 @@
         <div class="node accent"><span class="nlabel">interpret</span><h4>Analyst · Council</h4><p>Local AI reads the finished scoreboard — never predicts.</p></div>
       </div>
       <div style="margin-top:14px" class="pipe">
+        <div class="node"><span class="nlabel">validate · corpus</span><h4>Research Desk</h4><p>Pools a month of tapes into one pre-registered, FDR-controlled, sealed-validated framework verdict.</p></div>
         <div class="node" style="flex:0 1 340px"><span class="nlabel">screen · parallel</span><h4>Underwriter</h4><p>Read-only 0DTE desk on its own sidecar (:7601). Screens credit spreads; never enters one.</p></div>
       </div>
     </div>
@@ -455,11 +457,72 @@
   </div></div>
 </section>
 
+<!-- ============ RESEARCH DESK ============ -->
+<section class="module" id="research">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 04</span>
+      <h2>The Research Desk</h2>
+      <span class="pill ro ml">OFFLINE · READ-ONLY</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">An offline bench that works a whole month of recorded tapes into one honestly-validated trade framework — or, far more often, a disciplined "not yet" — and never lets hindsight in.</p>
+      <p class="prose">Where the Suite scores a single session, the Research Desk works the <b>whole corpus</b>. It was built after an adversarial audit of the scoreboard's own numbers found the one thing they couldn't answer: which excursion came <em>first</em>. So it first <b>recovers the sequence</b> the scoreboard discards — replaying the raw tape to time each move's maximum-favorable and maximum-adverse excursion — then scores <b>follow versus fade under one rule and one denominator</b>, cost charged and timeouts kept. On top of that sits a deliberately strict pipeline: a <b>pre-registered</b> hypothesis family committed before looking, a <b>session-clustered bootstrap</b> for honest confidence, <b>false-discovery-rate</b> control across the family, a <b>time-split</b> into discovery and a sealed set, and a verdict that only reads <span class="mono" style="color:var(--green)">CONFIRMED</span> when a framework holds on sessions it never saw. It is the project's "one discipline" turned into code.</p>
+
+      <div class="sub">Functions</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Sequence replay</span><p>Recovers the time-to-MFE and time-to-MAE the scoreboard drops. The fade question turns on which excursion came first — replayed bit-for-bit off the raw tape, proven to match the scoreboard's own numbers before adding a thing.</p></div>
+        <div class="func"><span class="fn">Follow vs fade · one rule</span><p>Scores both directions under the SAME exit rule and denominator — timeouts included, round-turn cost charged — so both sides can't be made to look good at once.</p></div>
+        <div class="func"><span class="fn">Pre-registered mining</span><p>A small hypothesis family, fixed before looking at results. The miner never searches beyond it and counts every cell — the honest opposite of "find the best framework that could have been traded."</p></div>
+        <div class="func"><span class="fn">Session-clustered confidence</span><p>The bootstrap resamples whole sessions, not signals — thirty signals in a day are not thirty independent observations — so the interval comes back honest and wide.</p></div>
+        <div class="func"><span class="fn">FDR-controlled discovery</span><p>Benjamini-Hochberg across the whole family, so a pattern that clears the bar by chance is caught and dropped rather than celebrated.</p></div>
+        <div class="func"><span class="fn">Sealed validation</span><p>Sessions split by time. A framework is CONFIRMED only if it holds on the sealed set it never saw; if it shrinks or flips it is REJECTED; if it's thin it reads INCONCLUSIVE.</p></div>
+        <div class="func"><span class="fn">Lossless retention</span><p>The recorder now writes a new segment on restart instead of overwriting the open tape — so a mid-session restart can't destroy the month of data the whole method depends on.</p></div>
+        <div class="func"><span class="fn">The desk page</span><p>A read-only, self-contained page in the cockpit's own skin renders the verdict, the discovery ranking, the order-of-excursion split, and the follow-vs-fade table — a pure consumer of the miner's JSON.</p></div>
+      </div>
+
+      <div class="sub">Panels — the desk page</div>
+      <ul class="tabs">
+        <li><b>Framework verdict</b> — Follow and Fade, each CONFIRMED / REJECTED / INCONCLUSIVE / NO_FRAMEWORK.</li>
+        <li><b>Discovery ranking</b> — every pre-registered hypothesis by cost-adjusted expectancy, FDR-tagged.</li>
+        <li><b>Order of excursion</b> — favorable-first vs adverse-first, the datum the fade question turns on.</li>
+        <li><b>Follow vs fade</b> — both sides under one rule, one denominator, cost-charged.</li>
+        <li><b>Sample &amp; discipline</b> — sessions, clustered events, the effective count, the FDR gate.</li>
+      </ul>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>Let the Recorder collect a month of real sessions — the data gate the whole method waits on.</li>
+        <li>Run the integrity check over the tapes before mining — no gaps, no truncation, provenance stamped.</li>
+        <li>Write the pre-registration: the hypothesis family and cost model, committed <em>before</em> looking.</li>
+        <li>Run the miner — it splits by time, de-clusters to events, bootstraps by session, and FDR-controls discovery.</li>
+        <li>Read the verdict on the desk page: CONFIRMED, REJECTED, INCONCLUSIVE, or NO_FRAMEWORK.</li>
+        <li>CONFIRMED → forward-test it frozen, off-bot. INCONCLUSIVE → collect more, re-test the SAME hypothesis.</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">Corpus <span class="hi">40 sessions · 245 breaks → 112 clustered events</span> (×2.2 inflation), <span class="hi">24</span> pre-registered hypotheses, split <span class="hi">28 discovery / 12 sealed</span> by time.<br>Order of excursion: <span class="hi">favorable-first 198</span> / adverse-first 31 — a follow-shaped tape.<br><span class="hi">FOLLOW</span> · Building 12t/4t@10m: discovery E[net] <span class="g">+5.05t</span> (p≈0, survives FDR), sealed <span class="g">+6.60t</span> [CI +5.4, +7.5] → <span class="g">CONFIRMED</span>. <span class="hi">FADE</span> → <span class="r">NO_FRAMEWORK</span> — nothing survived.<br>Footer, always: <span class="hi">"not a tradeable backtest — and never a signal to act."</span></div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>Collect first, formulate second, freeze third, validate on unseen data fourth.</li>
+          <li>Confidence is bootstrapped over sessions, never over signals — and the miner never searches beyond its pre-registered family.</li>
+          <li>INCONCLUSIVE is the expected answer on thin data — collect more sessions and re-test the same frozen hypothesis, never re-search.</li>
+          <li>A method demonstration until real tapes and real costs — every readout is flagged synthetic until then.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
 <!-- ============ UNDERWRITER ============ -->
 <section class="module" id="underwriter">
   <div class="wrap"><div class="frame reveal">
     <div class="mhead">
-      <span class="mnum">MODULE 04</span>
+      <span class="mnum">MODULE 05</span>
       <h2>The Underwriter</h2>
       <span class="pill ro ml">NEVER PLACES AN ORDER</span>
     </div>
@@ -520,7 +583,7 @@
 <section class="module" id="council">
   <div class="wrap"><div class="frame reveal">
     <div class="mhead">
-      <span class="mnum">MODULE 05</span>
+      <span class="mnum">MODULE 06</span>
       <h2>The Council</h2>
       <span class="pill on ml">LOCAL · READ-ONLY</span>
     </div>
@@ -574,7 +637,7 @@
 <!-- ============ THE DAY ============ -->
 <section id="day">
   <div class="wrap">
-    <div class="sec-eyebrow">06 · End to end</div>
+    <div class="sec-eyebrow">07 · End to end</div>
     <h2 class="sec-title">A day on the watch floor</h2>
     <p class="lede">One fictional session — Wednesday, 8 July 2026, symbol ES — from the open to next morning's review. Every number invented for illustration; the sequence is real.</p>
 
@@ -613,10 +676,11 @@
       <div class="law"><span class="k">Thin is thin</span><p>win% is of decided setups, paired with MAE; anything under N=5 is flagged, never headlined.</p></div>
       <div class="law"><span class="k">Local only</span><p>The AI reads run on your own model. No cloud, no data leaving the machine.</p></div>
       <div class="law"><span class="k">Interpret, don't predict</span><p>Every read is of a finished session — a lens to think with, never a recommendation.</p></div>
+      <div class="law"><span class="k">Validate on unseen data</span><p>A framework counts only if it holds on sessions it never saw. Pre-registered, FDR-controlled, sealed.</p></div>
     </div>
     <div class="foot">
       <span>◆ THE SENTINEL SYSTEM</span><span class="sep">·</span>
-      <span>Warden · Recorder · Suite · Underwriter · Council</span><span class="sep">·</span>
+      <span>Warden · Recorder · Suite · Research · Underwriter · Council</span><span class="sep">·</span>
       <span>read-only field manual</span><span class="sep">·</span>
       <span class="mono" style="color:var(--teal)">observing —</span>
     </div>

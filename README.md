@@ -7,6 +7,7 @@ end to end.
 - **Warden** — the self-hosted shell that hosts everything.
 - **The Recorder** — always-on capture of the live feed into replayable session tapes.
 - **The Sentinel Suite** — replays each tape and grades every breakout (the order-flow autopsy).
+- **The Research Desk** — mines a month of tapes into one pre-registered, FDR-controlled, sealed-validated framework verdict.
 - **The Underwriter** — a read-only 0DTE options screener that never places an order.
 - **The Council** — AI persona lenses that read a finished session (and the standalone Board of Directors).
 
