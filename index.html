@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="The Sentinel System — a read-only market watch floor. Warden, the Recorder, the Sentinel Suite, the Underwriter, and the Council explained end to end.">
+<meta property="og:title" content="The Sentinel System — Watch-Floor Field Manual">
+<meta property="og:description" content="A read-only market watch floor: Warden, Recorder, Sentinel Suite, Underwriter, Council — explained end to end.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+<title>The Sentinel System — Watch-Floor Field Manual</title>
+<style>
+  :root{
+    color-scheme: dark;
+    --ink:#0b0e12; --ink2:#0f141a; --panel:#131a22; --panel2:#171f28;
+    --line:rgba(125,145,165,.12); --line2:rgba(125,145,165,.24); --line3:rgba(125,145,165,.4);
+    --paper:#d9e0e8; --dim:#95a2af; --faint:#616d7a;
+    --red:#e23744; --redlo:rgba(226,55,68,.13); --reddim:#b3242f; --redglow:rgba(226,55,68,.45);
+    --teal:#45d0c4; --teallo:rgba(69,208,196,.12);
+    --green:#57bd7a; --amber:#dda63f;
+    --sans:"Helvetica Neue",-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --wrap:1140px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0; background:var(--ink); color:var(--paper);
+    font-family:var(--sans); font-size:16px; line-height:1.62;
+    -webkit-font-smoothing:antialiased; letter-spacing:.005em;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px),
+      radial-gradient(ellipse 90% 55% at 50% -8%, rgba(226,55,68,.10), transparent 70%);
+    background-size:44px 44px,44px 44px,100% 100%;
+    background-attachment:fixed;
+  }
+  ::selection{background:var(--redglow);color:#fff}
+  a{color:var(--teal);text-decoration:none}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  .mono{font-family:var(--mono)}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px}
+
+  /* ---- top status bar / nav ---- */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(10,13,17,.86);
+    backdrop-filter:blur(9px);border-bottom:1px solid var(--line2)}
+  .topbar-in{max-width:var(--wrap);margin:0 auto;padding:9px 28px;display:flex;
+    align-items:center;gap:16px;font-family:var(--mono);font-size:11.5px}
+  .tb-brand{color:var(--paper);font-weight:700;letter-spacing:.14em}
+  .tb-brand b{color:var(--red)}
+  .tb-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);
+    box-shadow:0 0 0 0 var(--teal);animation:pulse 2.6s ease-out infinite;display:inline-block}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(69,208,196,.5)}70%{box-shadow:0 0 0 7px rgba(69,208,196,0)}100%{box-shadow:0 0 0 0 rgba(69,208,196,0)}}
+  .tb-state{color:var(--teal);letter-spacing:.08em}
+  .tb-nav{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
+  .tb-nav a{color:var(--dim);padding:3px 9px;border-radius:4px;letter-spacing:.06em;
+    transition:color .15s,background .15s}
+  .tb-nav a:hover{color:var(--paper);background:var(--line)}
+  @media(max-width:820px){.tb-nav{display:none}}
+
+  /* ---- masthead ---- */
+  .hero{padding:82px 0 54px;border-bottom:1px solid var(--line2);position:relative}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.34em;
+    color:var(--red);text-transform:uppercase;display:flex;align-items:center;gap:12px}
+  .eyebrow::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,var(--redglow),transparent)}
+  .hero h1{font-size:clamp(2.7rem,8.5vw,6.1rem);font-weight:800;line-height:.94;
+    letter-spacing:-.02em;margin:22px 0 0;color:var(--paper)}
+  .hero h1 em{font-style:normal;color:var(--red);text-shadow:0 0 34px var(--redglow)}
+  .thesis{font-size:clamp(1.05rem,2.3vw,1.4rem);color:var(--dim);max-width:44ch;
+    margin:26px 0 0;line-height:1.5}
+  .thesis b{color:var(--paper);font-weight:600}
+  .boot{margin-top:38px;font-family:var(--mono);font-size:12.5px;color:var(--dim);
+    display:flex;flex-direction:column;gap:5px;max-width:640px}
+  .boot span{opacity:0;transform:translateY(4px);animation:bootin .5s ease forwards}
+  .boot span b{color:var(--teal);font-weight:400}
+  .boot .ok{color:var(--green)}
+  .boot .no{color:var(--red)}
+  @keyframes bootin{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.boot span{animation:none;opacity:1;transform:none}.tb-dot{animation:none}}
+
+  /* ---- section scaffolding ---- */
+  section{padding:66px 0;border-bottom:1px solid var(--line)}
+  .sec-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;
+    color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+  .sec-title{font-size:clamp(1.5rem,3.6vw,2.15rem);font-weight:800;letter-spacing:-.015em}
+  .lede{color:var(--dim);max-width:64ch;margin:16px 0 0;font-size:1.05rem}
+
+  /* ---- schematic ---- */
+  .schematic{margin-top:34px;border:1px solid var(--line2);border-radius:12px;
+    background:linear-gradient(180deg,var(--panel),var(--ink2));padding:26px 22px 30px;position:relative;overflow:hidden}
+  .schematic::before{content:"WARDEN · the shell · 127.0.0.1:7600";position:absolute;top:0;left:0;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--faint);
+    background:var(--ink2);border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);
+    border-bottom-right-radius:8px;padding:6px 12px}
+  .src{display:flex;justify-content:center;margin:30px 0 6px}
+  .src .chip{font-family:var(--mono);font-size:11.5px;color:var(--dim);border:1px dashed var(--line3);
+    border-radius:20px;padding:6px 15px;display:inline-flex;align-items:center;gap:9px}
+  .src .chip .tb-dot{width:6px;height:6px}
+  .down{width:1px;height:22px;background:var(--line3);margin:2px auto}
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
+  .node{flex:1 1 150px;min-width:150px;background:var(--panel2);border:1px solid var(--line2);
+    border-radius:9px;padding:15px 16px;position:relative}
+  .node.accent{border-color:var(--redglow);box-shadow:0 0 24px -14px var(--redglow)}
+  .node .nlabel{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+  .node.tealnode .nlabel{color:var(--teal)}
+  .node h4{font-size:1rem;font-weight:700;margin:5px 0 4px}
+  .node p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.45}
+  .arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 6px;min-width:74px;color:var(--faint)}
+  .arrow .a-line{font-family:var(--mono);font-size:18px;color:var(--line3)}
+  .arrow .a-cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;margin-top:2px}
+  @media(max-width:720px){.pipe{flex-direction:column;align-items:stretch}.arrow{min-width:0;padding:8px 0}.arrow .a-line{transform:rotate(90deg)}}
+
+  /* ---- module ---- */
+  .module .frame{border:1px solid var(--line2);border-radius:14px;background:
+    linear-gradient(180deg,rgba(23,31,40,.55),rgba(15,20,26,.4));padding:0;overflow:hidden;position:relative}
+  .module .frame::before,.module .frame::after{content:"";position:absolute;width:12px;height:12px;
+    border-color:var(--red);opacity:.55}
+  .module .frame::before{top:8px;left:8px;border-left:1.5px solid;border-top:1.5px solid}
+  .module .frame::after{bottom:8px;right:8px;border-right:1.5px solid;border-bottom:1.5px solid}
+  .mhead{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:20px 26px;
+    border-bottom:1px solid var(--line);background:rgba(226,55,68,.04)}
+  .mnum{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--red)}
+  .mhead h2{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:800;letter-spacing:-.01em}
+  .pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;padding:3px 10px;border-radius:20px;
+    text-transform:uppercase;border:1px solid;white-space:nowrap}
+  .pill.live{color:var(--teal);border-color:var(--teal);background:var(--teallo)}
+  .pill.ro{color:var(--paper);border-color:var(--line3);background:var(--line)}
+  .pill.on{color:var(--green);border-color:rgba(87,189,122,.5);background:rgba(87,189,122,.1)}
+  .ml{margin-left:auto}
+  .mbody{padding:26px}
+  .tagline{font-size:1.16rem;line-height:1.5;color:var(--paper);font-weight:500;
+    border-left:2px solid var(--red);padding-left:16px;margin:0 0 20px}
+  .prose{color:var(--dim);max-width:68ch;margin:0}
+  .sub{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--faint);margin:32px 0 14px;display:flex;align-items:center;gap:12px}
+  .sub::after{content:"";height:1px;flex:1;background:var(--line)}
+
+  .func-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
+  .func{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:14px 15px;
+    transition:border-color .18s,transform .18s,background .18s}
+  .func:hover{border-color:var(--line3);transform:translateY(-2px);background:var(--panel2)}
+  .func .fn{font-family:var(--mono);font-size:12.5px;color:var(--paper);font-weight:600;
+    display:block;letter-spacing:.01em}
+  .func .fn::before{content:"▸ ";color:var(--red)}
+  .func p{margin:7px 0 0;font-size:13.5px;color:var(--dim);line-height:1.5}
+
+  .tabs{list-style:none;padding:0;margin:0;display:grid;gap:8px;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+  .tabs li{font-size:14px;color:var(--dim);padding:9px 13px;border-radius:7px;background:rgba(125,145,165,.05);
+    border:1px solid var(--line)}
+  .tabs li b{color:var(--paper);font-family:var(--mono);font-size:12.5px;font-weight:600}
+
+  .howto{margin:0;padding:0;list-style:none;counter-reset:step;display:grid;gap:9px}
+  .howto li{position:relative;padding-left:44px;color:var(--dim);font-size:14.5px;line-height:1.55;
+    counter-increment:step;min-height:26px;padding-top:1px}
+  .howto li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:0;
+    font-family:var(--mono);font-size:11px;color:var(--red);border:1px solid var(--line2);
+    width:28px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--panel)}
+
+  .readout{margin-top:30px;border:1px solid var(--line2);border-radius:10px;background:#080b0e;overflow:hidden}
+  .readout-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--faint);padding:9px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;
+    background:rgba(226,55,68,.05)}
+  .readout-head .tb-dot{width:6px;height:6px;background:var(--red);animation:none}
+  .readout-body{padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.68;color:#b7c2cd;
+    overflow-x:auto}
+  .readout-body .hi{color:var(--paper)}
+  .readout-body .g{color:var(--green)} .readout-body .r{color:var(--red)} .readout-body .t{color:var(--teal)}
+
+  .discipline{margin-top:26px;border-left:2px solid var(--reddim);background:var(--redlo);
+    border-radius:0 8px 8px 0;padding:15px 18px}
+  .disc-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;color:var(--red);text-transform:uppercase}
+  .discipline ul{margin:9px 0 0;padding-left:18px;display:grid;gap:6px}
+  .discipline li{font-size:13.5px;color:var(--dim);line-height:1.5}
+  .discipline li::marker{color:var(--red)}
+
+  /* ---- timeline ---- */
+  .timeline{margin-top:34px;position:relative;padding-left:8px}
+  .tl-row{display:grid;grid-template-columns:96px 1fr;gap:20px;padding-bottom:26px;position:relative}
+  .tl-row::before{content:"";position:absolute;left:107px;top:8px;bottom:-4px;width:1px;background:var(--line2)}
+  .tl-row:last-child::before{display:none}
+  .tl-time{font-family:var(--mono);font-size:12.5px;color:var(--red);text-align:right;padding-top:2px;letter-spacing:.02em}
+  .tl-card{position:relative;padding-left:26px}
+  .tl-card::before{content:"";position:absolute;left:-1px;top:5px;width:9px;height:9px;border-radius:50%;
+    background:var(--ink);border:2px solid var(--red);z-index:1}
+  .tl-card.live::before{border-color:var(--teal);box-shadow:0 0 10px var(--teal)}
+  .tl-card h4{font-size:1.02rem;font-weight:700;margin:0 0 4px;color:var(--paper)}
+  .tl-card p{margin:0;color:var(--dim);font-size:14px;line-height:1.5}
+  .tl-card .num{font-family:var(--mono);color:var(--paper)}
+  @media(max-width:600px){.tl-row{grid-template-columns:1fr;gap:4px}.tl-row::before{display:none}
+    .tl-time{text-align:left}.tl-card{padding-left:0}.tl-card::before{display:none}}
+
+  /* ---- manifesto ---- */
+  .manifesto{padding:72px 0 90px;border-bottom:none}
+  .manifesto .big{font-size:clamp(1.5rem,4vw,2.4rem);font-weight:800;letter-spacing:-.015em;max-width:22ch;line-height:1.14}
+  .manifesto .big em{font-style:normal;color:var(--red)}
+  .laws{margin-top:34px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1px;
+    background:var(--line2);border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+  .law{background:var(--ink2);padding:18px 18px}
+  .law .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+  .law p{margin:8px 0 0;font-size:13.5px;color:var(--dim);line-height:1.5}
+  .foot{margin-top:52px;font-family:var(--mono);font-size:11.5px;color:var(--faint);
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;line-height:1.7}
+  .foot .sep{color:var(--line3)}
+
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <span class="tb-brand"><b>◆</b> SENTINEL</span>
+    <span class="tb-dot"></span>
+    <span class="tb-state">OBSERVING · READ-ONLY</span>
+    <nav class="tb-nav">
+      <a href="#warden">Warden</a>
+      <a href="#recorder">Recorder</a>
+      <a href="#suite">Suite</a>
+      <a href="#underwriter">Underwriter</a>
+      <a href="#council">Council</a>
+      <a href="#day">The Day</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Field Manual · v1</div>
+    <h1>The <em>Sentinel</em><br>System</h1>
+    <p class="thesis">A read-only watch floor for the market. It <b>observes</b>, <b>records</b>, <b>scores</b>, and <b>reports</b> — and it never places an order.</p>
+    <div class="boot mono">
+      <span style="animation-delay:.15s">&gt; shell: <b>Warden</b> · Odysseus fork · 127.0.0.1:7600 <span class="ok">ready</span></span>
+      <span style="animation-delay:.4s">&gt; engines: vendored · golden-vectored <span class="ok">✓</span></span>
+      <span style="animation-delay:.65s">&gt; feed: IBKR / TWS · <b>Read-Only API</b> <span class="ok">on</span></span>
+      <span style="animation-delay:.9s">&gt; recorder: armed · NY + Asia windows <span class="ok">✓</span></span>
+      <span style="animation-delay:1.15s">&gt; order surface: <span class="no">none. anywhere. ever.</span></span>
+    </div>
+  </div>
+</header>
+
+<section id="overview">
+  <div class="wrap">
+    <div class="sec-eyebrow">00 · The stack</div>
+    <h2 class="sec-title">One shell, four instruments, one discipline</h2>
+    <p class="lede">Everything runs inside <b>Warden</b> — a private, self-hosted workspace. The <b>Recorder</b> captures the trading day into replayable tapes; the <b>Sentinel Suite</b> scores each tape into a session report; the <b>Council</b> and Analyst read that report back through different lenses; and the <b>Underwriter</b> screens same-day options in parallel. Data flows one direction — in. Nothing flows out to a broker.</p>
+
+    <div class="schematic reveal">
+      <div class="src"><span class="chip mono"><span class="tb-dot"></span> IBKR / TWS · read-only feed</span></div>
+      <div class="down"></div>
+      <div class="pipe">
+        <div class="node tealnode"><span class="nlabel">capture</span><h4>Recorder</h4><p>Always-on. Tapes the ES/NQ book during ET windows.</p></div>
+        <div class="arrow"><span class="a-line">→</span><span class="a-cap">tape</span></div>
+        <div class="node"><span class="nlabel">analyze</span><h4>Sentinel Suite</h4><p>Replays the tape · grades every break · finds the blocker.</p></div>
+        <div class="arrow"><span class="a-line">→</span><span class="a-cap">report</span></div>
+        <div class="node accent"><span class="nlabel">interpret</span><h4>Analyst · Council</h4><p>Local AI reads the finished scoreboard — never predicts.</p></div>
+      </div>
+      <div style="margin-top:14px" class="pipe">
+        <div class="node" style="flex:0 1 340px"><span class="nlabel">screen · parallel</span><h4>Underwriter</h4><p>Read-only 0DTE desk on its own sidecar (:7601). Screens credit spreads; never enters one.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WARDEN ============ -->
+<section class="module" id="warden">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 01</span>
+      <h2>The Harness — Warden</h2>
+      <span class="pill ro ml">READ-ONLY SHELL</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">A private, self-hosted AI workspace that doubles as the read-only shell hosting your whole market toolkit — and never places a trade.</p>
+      <p class="prose">Warden is the container app for the Sentinel project: a self-hosted, Odysseus-forked workspace (Python/FastAPI + vanilla JS) running in Docker at 127.0.0.1:7600. It is the shell that hosts everything else — general tools (chat, notes, tasks, calendar, documents, a memory "Brain") alongside the trading suite (Sentinel, the Underwriter desk, and a Portfolio window). Rather than launching separate programs, it <b>runs the proven Sentinel Python engines natively</b>, connects to IBKR/TWS itself for the live detector, and proxies to the Underwriter Rust engine. Its defining discipline is read-only: nothing in the chain ever places, modifies, or cancels an order, and it prefers a labeled blank over a fabricated number.</p>
+
+      <div class="sub">Functions</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Self-hosted AI workspace</span><p>Local + API LLM chat with multiple model endpoints, sessions, agents/tools, MCP, skills, and per-session memory — the same chat plumbing that powers the trading reads.</p></div>
+        <div class="func"><span class="fn">Sentinel cockpit</span><p>A floating Live | Review panel: real-time order-flow detection, and a five-tab review suite over every recorded session.</p></div>
+        <div class="func"><span class="fn">Native vendored engines</span><p>The real Python engines (iceberg FSM, the v3 scoreboard, stage-2 research) run inside the process over tapes — not read from a pre-baked report, not a separate program.</p></div>
+        <div class="func"><span class="fn">Live detector + auto-record</span><p>Connects to TWS via ib_async under a supervised Watchdog, auto-records two daily windows, and auto-analyzes each closed tape so finished sessions appear on their own.</p></div>
+        <div class="func"><span class="fn">Underwriter desk</span><p>Proxies the separate Rust engine on :7601 and renders its 0DTE panels natively, polling every 2 seconds.</p></div>
+        <div class="func"><span class="fn">Portfolio window</span><p>Read-only account snapshot — positions, open orders, Net Liq, cash, buying power, unrealized P&amp;L — piggybacked on the live detector's one IB connection.</p></div>
+        <div class="func"><span class="fn">Workspace tools</span><p>Brain (memory), Notes, Tasks (scheduled agents), Calendar (CalDAV), Library (docs), Compare (blind model tests), Deep Research.</p></div>
+        <div class="func"><span class="fn">Manual-observation journal</span><p>A whitelisted proxy that records what you already did by hand in TWS (enter / close / void). Nothing on this path reaches a broker.</p></div>
+      </div>
+
+      <div class="sub">Panels</div>
+      <ul class="tabs">
+        <li><b>Icon rail + Tools</b> — launches every panel; header reads "Warden".</li>
+        <li><b>Chat</b> — model picker, sessions, composer (web search, shell, RAG).</li>
+        <li><b>Sentinel</b> — the trading cockpit (Live | Review, 5 tabs).</li>
+        <li><b>Underwriter</b> — the read-only 0DTE desk.</li>
+        <li><b>Portfolio</b> — read-only account snapshot.</li>
+        <li><b>Brain · Notes · Tasks · Calendar · Library · Compare · Deep Research</b> — the workspace surface.</li>
+      </ul>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>One-time: clone the private repo, install Docker Desktop, launch it once.</li>
+        <li>Double-click <b>start.bat</b> — it starts Docker, builds the container, and opens 127.0.0.1:7600.</li>
+        <li>Log in with the starter admin account, then set your own password in Settings.</li>
+        <li>Run TWS / IB Gateway with the API on (Read-Only, port 7497 paper / 7496 live, trusted IPs set).</li>
+        <li>Navigate the icon rail: Sentinel, Underwriter, Portfolio, or the workspace tools.</li>
+        <li>In Sentinel, arm Live or pick a recorded session, then read it across the tabs.</li>
+        <li>Stop with <b>stop.bat</b> (data kept); update later with <b>update.bat</b> (login + tapes preserved).</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">9:12 ET — <span class="hi">start.bat</span> → browser opens, sign in as admin. Paper TWS up on 7497, so Sentinel Live arms on ES and the health pill turns <span class="t">green (LIVE)</span>.<br>16:15 — the NY tape closes on its own: <span class="hi">ES-1783012600-live.jsonl.gz</span> (~27 MB) + its <span class="hi">.report.json</span> written beside it. A card <span class="hi">"ES 09:30–16:15 · 14 setups"</span> appears in Review — no file moved.<br>Analyst reads it back: <span class="hi">"46% win of 13 decided, median MAE 7t; 3 of 5 breaks iceberg-confirmed, book near-flat."</span> Underwriter flags one <span class="g">CANDIDATE</span> 6100/6075 put spread — Warden places <span class="r">nothing</span>; the trade is entered by hand in TWS.</div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>Read-only across the entire chain — never places, modifies, or cancels an order.</li>
+          <li>Honest state: a missing value renders "—" or a named state (ENGINE_OFFLINE, DELAYED), never a fabricated 0.</li>
+          <li>The Portfolio shows numbers only while Live is armed — never stale or fake account data.</li>
+          <li>The AI reads use only numbers present in the session JSON — nulls stated, thin samples flagged, no advice.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ RECORDER ============ -->
+<section class="module" id="recorder">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 02</span>
+      <h2>The Recorder</h2>
+      <span class="pill live ml"><span class="tb-dot"></span> ALWAYS-ON</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">A server-side flight recorder that auto-tapes the live feed during session windows and turns each closed tape into a scored, replayable review — without anyone touching a file.</p>
+      <p class="prose">The Recorder is Sentinel's always-on capture layer. A live detector stays armed 24/7 under a supervisor and streams the ES/NQ order book from TWS; during the configured ET windows it auto-saves every engine cycle to a compressed, replayable tape. It follows the <b>detector, not the browser</b> — closing the cockpit never stops a recording, so a tape is complete even if nobody opened the UI. The instant a window ends, the tape is finalized and analyzed into a sibling <b>.report.json</b> that appears on its own in the Review sidebar. No analyzer to run, no files to move.</p>
+
+      <div class="sub">Functions</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Windowed auto-recording</span><p>Every ~1s cycle checks the ET clock; opens a tape when a window starts, records inside it, closes it the instant it ends. Outside a window it's a pure no-op.</p></div>
+        <div class="func"><span class="fn">DST-aware ET windows</span><p>NY 09:30–16:15 and Asia 18:00–03:00. The Asia tape spans midnight and is filed by its close date (Globex convention).</p></div>
+        <div class="func"><span class="fn">The tape (fmt-2 JSONL.gz)</span><p>One gzipped JSON line per cycle: L2 depth (top-10 book), IV, skew, levels, trade ticks, inside quotes — flushed every cycle, so a yanked cable keeps everything up to that moment.</p></div>
+        <div class="func"><span class="fn">On-close report</span><p>Replays the closed tape through the Signal Scoreboard and writes a sentinel.session.v1 report atomically. A report failure never breaks recording — the tape is the record.</p></div>
+        <div class="func"><span class="fn">Signal Scoreboard</span><p>Collects BREAK setups (HOD/LOD, opening-range) causally, then grades each forward for MFE/MAE and first-touch win/loss across a target × horizon grid.</p></div>
+        <div class="func"><span class="fn">The blocker</span><p>Measures order-book imbalance at each break and reports how near-flat the book was — surfacing when the book was <em>not</em> behind the move.</p></div>
+        <div class="func"><span class="fn">Iceberg block</span><p>Runs the absorption detector over the tape for a summary — how many breaks hidden size confirmed, rejected, or left mixed.</p></div>
+        <div class="func"><span class="fn">Auto-listing (no file moving)</span><p>Scans the live dir and the read-only Suite mount, deduped, so a fresh report shows in the sessions tab automatically.</p></div>
+        <div class="func"><span class="fn">Backfill + self-heal</span><p>On startup, writes a report for any orphaned tape and regenerates stale reports — so a session can never silently go missing.</p></div>
+      </div>
+
+      <div class="sub">Panels</div>
+      <ul class="tabs">
+        <li><b>Live status pill</b> — detector state, cycle count, feed health, and the open tape's filename.</li>
+        <li><b>Review sidebar</b> — every recorded session (symbol, window, setup count), newest first.</li>
+        <li><b>Setups table</b> — time, direction, conviction, trigger, price, OBI, MFE/MAE, result.</li>
+        <li><b>Outcome grid &amp; segments</b> — win% across targets × horizons, split by trigger / conviction / blocker.</li>
+        <li><b>Replay picker</b> — replay any tape through the cockpit at real time.</li>
+      </ul>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>Keep TWS running — the supervisor keeps the detector armed 24/7, so there's no daily start.</li>
+        <li>Do nothing at the open: at 09:30 the recorder opens a tape and captures server-side.</li>
+        <li>At window close it finalizes the tape and auto-generates its report — no analyzer, no file moving.</li>
+        <li>Open the Review sidebar — the new session is already sitting on top.</li>
+        <li>Click it to read the Setups table, the outcome grid, the blocker, and the iceberg summary.</li>
+        <li>Run the Analyst, then the Council, on the same numbers.</li>
+        <li>If a report ever looks missing, hit backfill (or restart) — it regenerates from the tape.</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">09:30:01 — first NY cycle trips the window → recorder opens <span class="hi">es_20260708_ny.jsonl.gz</span>. Nobody opens the cockpit; capture is server-side.<br>16:15:00 — window ends. End trailer written, tape closed (<span class="hi">~23,400 cycles · ~38 MB</span>), replayed into <span class="hi">es_20260708_ny.report.json</span>: <span class="hi">11 setups</span> (7L/4S), ±8t@20m win <span class="hi">44%</span>, median MFE <span class="g">+6.0t</span> / MAE <span class="r">−3.0t</span>, blocker |OBI| <span class="hi">0.11</span> (only 3/11 confirmed), iceberg 9 events.<br>16:20 — Review sidebar already shows the session on top. No file moved.</div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>Read-only: it only writes a file <em>about</em> the market — never an order.</li>
+          <li>Report generation is best-effort; a failure is logged and skipped so recording never breaks.</li>
+          <li>Setups are graded causally — no look-ahead; grading only looks forward along the recorded path.</li>
+          <li>Show nothing rather than something false: a tape with no depth or no breaks reads as an honest blank.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ SUITE ============ -->
+<section class="module" id="suite">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 03</span>
+      <h2>The Sentinel Suite</h2>
+      <span class="pill ro ml">METHOD DEMONSTRATION</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">A read-only order-flow autopsy engine: it replays a recorded session and grades every breakout the cockpit would have called — honestly, and without ever touching the market.</p>
+      <p class="prose">The Suite is four analysis engines (PRO · STAGE 2 · ANALYST · ICEBERG STUDY) that run natively inside Warden. It replays a saved tape through the <b>exact same Engine and detector the live cockpit uses</b>, finds the "break" setups that would have fired inside the RTH windows (09:30–11:00 and 14:30–16:00 ET), and grades each by what price actually did next — forward MFE/MAE in ticks and first-touch win/loss across a grid of targets and horizons. Its signature finding is <b>the blocker</b>: at real breakouts the order book is usually near-flat rather than behind the move, so unconfirmed breaks are suspect. It answers one disciplined question — <em>does the read actually work?</em> — with no hindsight and no hype.</p>
+
+      <div class="sub">Functions</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Deterministic replay + break detection</span><p>Fires breaks on high/low-of-day and 15-min opening-range crossings, only inside the RTH windows, with a 4-tick debounce. Causal — it only sees data up to the break instant.</p></div>
+        <div class="func"><span class="fn">MFE/MAE + first-touch grid</span><p>Grades forward along the real mid path: max favorable/adverse excursion, plus win/loss at ±T ticks across targets 4/8/12 and horizons 10m/20m — so no single stop is cherry-picked.</p></div>
+        <div class="func"><span class="fn">Confluence + conviction</span><p>At each break: OBI over the top 10 levels, a VWAP vote, and CVD slope over 60s. Agreement tiers the setup High / Building / Standard.</p></div>
+        <div class="func"><span class="fn">The blocker (OBI at break)</span><p>Buckets breaks as confirming / neutral / opposing at the 0.30 threshold. The recurring result: the book piles near zero — it is not behind the move.</p></div>
+        <div class="func"><span class="fn">Segmentation</span><p>Splits outcomes by trigger, by conviction, and by book state — each with N, win%, W/L/TO, and median MFE/MAE, so you see whether conviction actually paid.</p></div>
+        <div class="func"><span class="fn">Iceberg / absorption</span><p>Finds hidden-size absorption events — bid (bullish) vs ask (bearish) — with absorbed-vs-advertised ratios, and tallies which breaks hidden size confirmed.</p></div>
+        <div class="func"><span class="fn">Cross-session backtest</span><p>Flattens every setup across all sessions into one filterable pool (direction, conviction, trigger, min |OBI|, iceberg verdict) vs the all-setups baseline.</p></div>
+        <div class="func"><span class="fn">Analyst + Council reads</span><p>Feeds a compact digest to the local model: one deep Analyst review, or four persona lenses — both bound by hard honesty rules.</p></div>
+      </div>
+
+      <div class="sub">Panels — the five tabs</div>
+      <ul class="tabs">
+        <li><b>Analyst</b> — the local LLM's plain-English end-of-day read in fixed desk sections.</li>
+        <li><b>Report</b> — the scoreboard: summary, outcome grid, setups table, segments, alerts.</li>
+        <li><b>Evidence</b> — the blocker: |OBI| at break, the distribution, per-break confluence.</li>
+        <li><b>Backtest</b> — pool every session and filter entry rules vs baseline (with an N&lt;5 warning).</li>
+        <li><b>Council</b> — four AI desk personas on the same read-only scoreboard.</li>
+      </ul>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>Open the Sentinel panel; it opens on Review with the session list down the left.</li>
+        <li>Launch a live recording, or pick an already-recorded session.</li>
+        <li>Read the Report tab: scoreboard, outcome grid, per-setup table, segments, alerts.</li>
+        <li>Check Evidence for the blocker — the OBI-at-break histogram and per-break confluence.</li>
+        <li>Use Backtest to pool sessions and test filters against all setups.</li>
+        <li>Generate the Analyst read, then convene the Council.</li>
+        <li>Send any tab to chat, or download it as Markdown, for a written record.</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">Tape <span class="hi">es_20260710_ny.jsonl.gz</span> (09:31–11:00 ET, ~1,780 cycles) → <span class="hi">14 setups</span> (9L/5S).<br>±8t@20m: raw breaks resolve <span class="hi">44%</span> (7W/9L of decided), median MAE <span class="r">−5t</span> / MFE <span class="g">+4t</span>.<br>The blocker bites: median |OBI| <span class="hi">0.19</span>, only <span class="hi">5 of 14</span> breaks confirming — the confirming bucket grades <span class="g">4W/1L</span>, the flat-book bucket <span class="r">1W/5L</span>. Iceberg: 6 confirmed / 2 rejected.<br>Analyst grade: <span class="hi">2/5</span> — "don't trust a break the book isn't behind."</div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>A method demonstration, <em>not</em> a tradeable backtest — frictionless, mid-priced, not net of cost/spread/slippage.</li>
+          <li>win% is always of DECIDED setups (timeouts excluded) and paired with median MAE.</li>
+          <li>Segments with N&lt;5 are greyed and flagged as too thin to read as a rate.</li>
+          <li>No look-ahead — the detector is causal; grading only looks forward.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ UNDERWRITER ============ -->
+<section class="module" id="underwriter">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 04</span>
+      <h2>The Underwriter</h2>
+      <span class="pill ro ml">NEVER PLACES AN ORDER</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">A read-only desk that watches the 0DTE S&amp;P options market, screens same-day credit spreads, and enforces your risk discipline — but never places a single order.</p>
+      <p class="prose">The Underwriter is a decision-support and risk-control desk for selling same-day-expiry (0DTE) SPXW credit spreads and iron condors. A headless Rust/Tauri engine connects to everyday TWS with the API set to <b>Read-Only</b>, prices the market's expected move from the ATM straddle, screens spreads against hard rejection rules, ranks the survivors, and tracks position risk and self-discipline breakers. It exists because unconditional 0DTE selling is roughly zero-EV net of costs — so it sells <b>selectivity and tail control, not an edge</b>, and its UI is built to never argue otherwise. Read-only three ways over: <span class="mono" style="font-size:13px">ibapi::orders</span> is never imported, TWS Read-Only API is on, and no command can describe an order.</p>
+
+      <div class="sub">Functions</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Expected-move pricing</span><p>D = the interpolated ATM straddle mid; four bands from it (mean 1.00×, median 0.845×, 1σ 1.253×, 2σ 2×1σ). Broker IV never enters a time-scaling formula.</p></div>
+        <div class="func"><span class="fn">Scanner with verdicts</span><p>Builds put/call spreads and iron condors, runs 8 ordered hard-reject rules, scores Quality (Q), and stamps CANDIDATE (Q≥75), WATCH (65–75), or SKIP (declined).</p></div>
+        <div class="func"><span class="fn">Quality / Danger / Premium</span><p>Ranks on renormalized positives (alignment, premium, strike-safety, liquidity, gamma) minus a Danger term. distance_em = |spot − short| ÷ EM is the core safety input.</p></div>
+        <div class="func"><span class="fn">Risk breakers + sizing</span><p>Discipline recomputed from the journal each launch — NORMAL, COOLING (2 stops/15m), LOCKED (3 stops or day P&amp;L ≤ −2% NLV). Sizing now from a live read-only NLV read; fails closed.</p></div>
+        <div class="func"><span class="fn">Gamma wall map</span><p>Two-layer density — green support below spot, red resistance above — dashed strongest walls and a zero-gamma band. Levels update live; the dealer sign is a fixed, labeled assumption.</p></div>
+        <div class="func"><span class="fn">Position marking + exits</span><p>After a manual entry, marks every second and runs a latched exit engine — take-profit, a debounced 2× stop, touch-stop, and standing time-exit / flatten windows.</p></div>
+      </div>
+
+      <div class="sub">Panels — the six readouts</div>
+      <ul class="tabs">
+        <li><b>Status</b> — CONNECTED, data mode (LIVE / DELAYED), asof age, last error.</li>
+        <li><b>Expected Move</b> — D headline, spot, and the four bands; scanner-gate chips.</li>
+        <li><b>Tape</b> — RV, RI, proj-move, ρ, k-TOD, D0, and the day's open/high/low.</li>
+        <li><b>Scanner</b> — put / call / IC tables with strikes, credit, Q, and the verdict pill.</li>
+        <li><b>Risk</b> — breaker strip, stops today, NLV / max-contracts, and position rows.</li>
+        <li><b>Gamma</b> — support/resistance walls, the zero-gamma band, data-age chips.</li>
+      </ul>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>Launch the engine (live / delayed / replay); it dials TWS Read-Only and idles cleanly off-session.</li>
+        <li>Open the panel in Warden — it polls every 2 seconds and reserves its full layout so nothing reflows.</li>
+        <li>Confirm Status: CONNECTED, the data mode, and a small asof age.</li>
+        <li>Read Expected Move for how far the index can travel today and whether the gate is OPEN.</li>
+        <li>Work the Scanner — use Q and the CANDIDATE / WATCH / SKIP verdict to narrow the field.</li>
+        <li>Glance at Risk and Gamma for context — there is no "enter" light, by design.</li>
+        <li>Place any order yourself in your own TWS, then record the fill so the desk can mark it and enforce exits.</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">SPX <span class="hi">5,901.40</span> · straddle D <span class="hi">42.50</span> → EM mean 42.5 / median 35.9 / 1σ 53.3 / 2σ 106.5 · gate <span class="g">OPEN</span>.<br>Scanner: PCS short <span class="hi">5820</span> / long <span class="hi">5790</span>, credit 4.20, Δshort 0.12, dist_EM 1.91, Q <span class="hi">78.4</span> → verdict <span class="g">CANDIDATE</span>. <span class="hi">REJECTS LOGGED: 37</span>; call side one-sided SKIP.<br>Risk: <span class="g">BREAKERS: NORMAL</span>, stops 0, max contracts 4 (binding: aggregate risk). Gamma: green wall <span class="g">5850</span> below / red wall <span class="r">5950</span> above.<br>Footer, always: <span class="hi">"screen outcome, not a recommendation."</span></div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>Read-only forever, enforced three ways — it never places, modifies, or cancels an order.</li>
+          <li>It screens and ranks; it never says "enter." <b>SKIP</b> means the desk <em>declines</em> the spread (renamed from PASS, which read as "passed").</li>
+          <li>Breakers recompute from the journal each launch, are monotonic in-session, and fail CLOSED.</li>
+          <li>Not an edge display — KPIs headline expectancy and capture, never probability-of-profit as edge.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ COUNCIL ============ -->
+<section class="module" id="council">
+  <div class="wrap"><div class="frame reveal">
+    <div class="mhead">
+      <span class="mnum">MODULE 05</span>
+      <h2>The Council</h2>
+      <span class="pill on ml">LOCAL · READ-ONLY</span>
+    </div>
+    <div class="mbody">
+      <p class="tagline">A panel of AI personas that each read the same thing through a different lens and argue instead of agreeing — the value is the spread, not a verdict.</p>
+      <p class="prose">"The Council" is a multi-persona review pattern: instead of one AI giving a single answer, several personas each examine the same material through their own lens and write independent takes. It exists in <b>two forms</b>. The <b>in-Warden Council</b> is a tab in the Sentinel panel — four fixed desk personas read one finished, recorded session's scoreboard on your local model. The standalone <b>Board of Directors</b> is a separate app where six AI models of real finance creators, plus a neutral Chair, convene on a money question you type. Both are strictly read-only and educational; neither ever places a trade or gives buy/sell advice.</p>
+
+      <div class="sub">Functions — In-Warden Council</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Four desk personas</span><p>Risk Manager (downside — MAE, timeouts, loss clustering), Momentum Trader (follow-through — MFE, best triggers), Contrarian (what makes the read wrong — sample size), Tape Reader (order flow — OBI, iceberg, CVD). Each writes an independent ~250–400 word take.</p></div>
+        <div class="func"><span class="fn">Runs on your local model</span><p>Executed against Warden's own Ollama endpoint — no external API, no cloud, no data leaving the machine. Faster local model, deliberately distinct from the deeper single Analyst read.</p></div>
+        <div class="func"><span class="fn">Convene-all or per-persona</span><p>"Convene the council" runs all four; each card has a re-run button to refresh just one. Results cache per session and can be bundled into one document.</p></div>
+      </div>
+
+      <div class="sub">Functions — Standalone Board of Directors</div>
+      <div class="func-grid">
+        <div class="func"><span class="fn">Six finance-creator personas</span><p>ClearValue Tax, Nicholas Crown, Trade Brigade, InTheMoney, Defiant Gatekeeper, Felix &amp; Friends — arranged in deliberate polarity pairs so the tension is the feature.</p></div>
+        <div class="func"><span class="fn">The neutral Chair</span><p>Convenes only the relevant seats, collects each take in isolation to avoid anchoring, then synthesizes with confidence-weighting — reporting the vote split and protecting the strongest dissent, never averaging.</p></div>
+        <div class="func"><span class="fn">Two ways to run</span><p>Assembles a full council prompt you either copy into Claude/ChatGPT, or "Convene live" against a local Ollama model. No install, no API key.</p></div>
+        <div class="func"><span class="fn">Report mode — the Sentinel bridge</span><p>A Sentinel-Pro session report ends with a "Questions for the Board" section naming exact seats; loading it auto-convenes them, each answering its own question grounded in that session's data.</p></div>
+      </div>
+
+      <div class="sub">How to use</div>
+      <ol class="howto">
+        <li>In Warden: open Sentinel, pick a recorded session, switch to the Council tab.</li>
+        <li>Click "Convene the council" for all four, or the re-run button for a single persona.</li>
+        <li>Read the four independent takes; optionally bundle them into one document.</li>
+        <li>Standalone: open the Board of Directors app, type a money question, pick the seats.</li>
+        <li>Copy the prompt into an LLM, or convene it live on Ollama.</li>
+        <li>Or load a Sentinel report so the named seats auto-answer that session's questions.</li>
+      </ol>
+
+      <div class="readout">
+        <div class="readout-head"><span class="tb-dot"></span> Synthetic readout · illustrative only</div>
+        <div class="readout-body">Recorded ES session (09:30–11:00, 22 setups) → "Convene." Four cards fill from local phi4:<br>· <span class="hi">Momentum</span>: VWAP-reclaim longs ran median <span class="g">+14t</span>; high-conviction (n=7) actually paid.<br>· <span class="hi">Risk Manager</span>: median <span class="r">9t of heat</span> even on winners; 3 of 4 losses in the thin-book bucket.<br>· <span class="hi">Contrarian</span>: the "edge" rests on only <span class="r">5 confirmed breaks</span> — too thin out of sample.<br>· <span class="hi">Tape Reader</span>: OBI near-flat (0.08) at two breaks — the book wasn't behind them.<br>Standalone Board, "Should I sell covered calls for income?" → the Chair returns the <em>tension</em> (capped upside vs steady premium), not a trade.</div>
+      </div>
+
+      <div class="discipline">
+        <span class="disc-label">Discipline</span>
+        <ul>
+          <li>Interprets one finished session only — never predicts, never advises, never suggests a trade.</li>
+          <li>Runs entirely on your local model — no external API, nothing leaves the machine.</li>
+          <li>Built to disagree — forces at least one dissent, protects the minority, discounts any voice off its lane.</li>
+          <li>The standalone Board's personas are openly labeled AI models of public figures — not the people, not endorsements.</li>
+        </ul>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ THE DAY ============ -->
+<section id="day">
+  <div class="wrap">
+    <div class="sec-eyebrow">06 · End to end</div>
+    <h2 class="sec-title">A day on the watch floor</h2>
+    <p class="lede">One fictional session — Wednesday, 8 July 2026, symbol ES — from the open to next morning's review. Every number invented for illustration; the sequence is real.</p>
+
+    <div class="timeline reveal">
+      <div class="tl-row"><div class="tl-time">09:30:01 ET</div>
+        <div class="tl-card live"><h4>Window opens · recording begins</h4><p>The first cycle inside the NY window trips the recorder. It opens <span class="num">es_20260708_ny.jsonl.gz</span> and begins taping the book — server-side. Nobody opens the cockpit; capture doesn't need it.</p></div></div>
+      <div class="tl-row"><div class="tl-time">09:41 ET</div>
+        <div class="tl-card"><h4>Opening-range break fires</h4><p>An OR-hi long triggers and runs <span class="num g">+9 ticks</span>. The detector logs it with its conviction tier and the OBI reading at the break instant — causally, seeing only what came before.</p></div></div>
+      <div class="tl-row"><div class="tl-time">12:18 ET</div>
+        <div class="tl-card"><h4>A break that doesn't work</h4><p>A noon high-of-day long stalls and <span class="num r">times out</span> — recorded exactly the same way, because honest scoring keeps the losers.</p></div></div>
+      <div class="tl-row"><div class="tl-time">12:40 ET</div>
+        <div class="tl-card"><h4>Feed hiccup · auto-recovery</h4><p>TWS drops for a moment; the supervised Watchdog reconnects and the detector restarts. The tape keeps its place — and later, the startup backfill quietly regenerates the report so nothing goes missing.</p></div></div>
+      <div class="tl-row"><div class="tl-time">16:15:00 ET</div>
+        <div class="tl-card"><h4>Window closes · tape scored</h4><p>The clock leaves the window. The recorder writes the trailer, closes the tape (<span class="num">~23,400 cycles · ~38 MB</span>), and replays it into <span class="num">es_20260708_ny.report.json</span>: <span class="num">11 setups</span>, ±8t@20m win <span class="num">44%</span>, MFE <span class="num g">+6.0t</span> / MAE <span class="num r">−3.0t</span>, blocker |OBI| <span class="num">0.11</span> (3/11 confirmed), iceberg 9 events.</p></div></div>
+      <div class="tl-row"><div class="tl-time">16:20 ET</div>
+        <div class="tl-card"><h4>Session appears — no file moved</h4><p>The trader opens the Review sidebar. The session is already on top, tagged ES · 09:30–16:15 · 11 setups. They read the Setups table, the outcome grid, and the blocker.</p></div></div>
+      <div class="tl-row"><div class="tl-time">16:24 ET</div>
+        <div class="tl-card"><h4>The Analyst reads it back</h4><p>The local model grades it <span class="num">2/5</span>: "chop dressed as breakouts — the book was near-flat at nearly every break; the only pocket of edge was OR-hi longs with a confirming book, and that's 4 setups, too thin to lean on."</p></div></div>
+      <div class="tl-row"><div class="tl-time">16:31 ET</div>
+        <div class="tl-card"><h4>The Council piles on</h4><p>Four lenses on the same numbers: Risk Manager flags the heat and a 27% timeout rate; Momentum notes both runners clustered in the first hour; the Contrarian dismisses the OR-hi "edge" at N=4; the Tape Reader ties the rejected breaks to absorption defending the level.</p></div></div>
+      <div class="tl-row"><div class="tl-time">next a.m.</div>
+        <div class="tl-card"><h4>Folded into the record</h4><p>The session card shows a cached "read" flag, and its 11 setups are already pooled into the cross-session backtest — one more day of evidence, captured without anyone lifting a finger.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto">
+  <div class="wrap">
+    <div class="sec-eyebrow">The through-line</div>
+    <h2 class="big">It watches, scores, and reports. It <em>never</em> touches the market.</h2>
+    <div class="laws reveal">
+      <div class="law"><span class="k">Read-only</span><p>No order surface exists anywhere in the stack. Not hidden, not disabled — absent.</p></div>
+      <div class="law"><span class="k">Honest state</span><p>A blank "—" or a named state beats a fabricated 0. Show nothing rather than something false.</p></div>
+      <div class="law"><span class="k">No look-ahead</span><p>Detectors are causal; grading only looks forward along the price that actually printed.</p></div>
+      <div class="law"><span class="k">Thin is thin</span><p>win% is of decided setups, paired with MAE; anything under N=5 is flagged, never headlined.</p></div>
+      <div class="law"><span class="k">Local only</span><p>The AI reads run on your own model. No cloud, no data leaving the machine.</p></div>
+      <div class="law"><span class="k">Interpret, don't predict</span><p>Every read is of a finished session — a lens to think with, never a recommendation.</p></div>
+    </div>
+    <div class="foot">
+      <span>◆ THE SENTINEL SYSTEM</span><span class="sep">·</span>
+      <span>Warden · Recorder · Suite · Underwriter · Council</span><span class="sep">·</span>
+      <span>read-only field manual</span><span class="sep">·</span>
+      <span class="mono" style="color:var(--teal)">observing —</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Scroll reveal
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion:reduce)').matches){
+      els.forEach(function(e){e.classList.add('in')}); return;
+    }
+    var io = new IntersectionObserver(function(rows){
+      rows.forEach(function(r){ if(r.isIntersecting){ r.target.classList.add('in'); io.unobserve(r.target); } });
+    }, {rootMargin:'0px 0px -12% 0px', threshold:.08});
+    els.forEach(function(e){io.observe(e)});
+  })();
+
+  // Active-nav highlight
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('.tb-nav a'));
+    var map = {}; links.forEach(function(l){ map[l.getAttribute('href').slice(1)] = l; });
+    var secs = links.map(function(l){ return document.getElementById(l.getAttribute('href').slice(1)); }).filter(Boolean);
+    if(!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(rows){
+      rows.forEach(function(r){
+        var l = map[r.target.id]; if(!l) return;
+        if(r.isIntersecting){ links.forEach(function(x){x.style.color='';x.style.background='';}); l.style.color='var(--paper)'; l.style.background='var(--line)'; }
+      });
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    secs.forEach(function(s){io.observe(s)});
+  })();
+</script>
+</body>
+</html>
